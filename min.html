@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Burrito Bison Launcher</title>
+<style>
+body { margin: 0; padding: 0; font-family: Arial; background: #667eea; overflow: hidden; }
+.container { width: 100vw; height: 100vh; position: relative; background: linear-gradient(to bottom, #87CEEB 0%, #90EE90 50%, #FFD700 100%); }
+.launcher { position: absolute; bottom: 20px; left: 50px; width: 60px; height: 60px; background: #FF6B35; border: 3px solid #FF4500; border-radius: 10px; cursor: pointer; font-size: 40px; display: flex; align-items: center; justify-content: center; z-index: 10; user-select: none; }
+.launcher:hover { transform: scale(1.1); }
+.launcher:active { transform: scale(0.95); }
+.bar { position: absolute; bottom: 85px; left: 20px; width: 120px; height: 30px; background: #333; border: 2px solid white; border-radius: 5px; overflow: hidden; }
+.fill { height: 100%; background: linear-gradient(90deg, #FF6B35, #FFA500); width: 0%; }
+.label { position: absolute; bottom: 120px; left: 20px; color: white; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); }
+.ui { position: absolute; top: 20px; left: 20px; color: white; font-size: 18px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); }
+.bison { position: absolute; font-size: 45px; z-index: 20; }
+.enemy { position: absolute; font-size: 35px; z-index: 15; }
+.combo { position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%); color: #FFD700; font-size: 24px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); z-index: 50; }
+.shop { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.85); padding: 20px; border: 2px solid #FFD700; border-radius: 10px; color: white; max-width: 280px; max-height: 80vh; overflow-y: auto; z-index: 100; }
+.shop-title { color: #FFD700; font-weight: bold; margin-bottom: 15px; text-align: center; }
+.item { background: rgba(255,255,255,0.1); padding: 10px; margin: 8px 0; border-radius: 5px; cursor: pointer; border: 2px solid transparent; }
+.item:hover { background: rgba(255,255,255,0.2); border-color: #FFD700; }
+.cost { color: #FFD700; font-size: 12px; }
+.owned { color: #90EE90; font-size: 11px; }
+button { width: 100%; background: #FF6B35; color: white; border: none; padding: 10px; border-radius: 5px; margin-top: 10px; cursor: pointer; font-weight: bold; }
+button:hover { background: #FF4500; }
+.reset { background: #764ba2; }
+.reset:hover { background: #5a3680; }
+</style>
+</head>
+<body>
+<div class="container">
+<div class="label">👆 Hold to charge</div>
+<div class="bar"><div class="fill" id="fill"></div></div>
+<div class="launcher" id="btn">🦬</div>
+<div class="ui">
+<div>📏 <span id="dist">0</span>m</div>
+<div style="color: #FFD700;">💰 $<span id="cash">0</span></div>
+<div style="color: #FFA500;">⚡ <span id="mult">1.0</span>x</div>
+</div>
+<div class="combo" id="combo"></div>
+<div class="shop">
+<div class="shop-title">🛒 UPGRADES</div>
+<div id="shop"></div>
+<button class="reset" onclick="g.reset()">🔄 Reset</button>
+</div>
+</div>
+
+<script>
+const g = {
+d: 0, m: 0, x: 1, p: 0, mp: 100, c: false, bi: null, ch: 0, ct: null, ci: null,
+u: [
+{ n: '🚀 Better', co: 100, e: 1.2, o: 0 },
+{ n: '🔥 Rocket', co: 500, e: 1.5, o: 0 },
+{ n: '✈️ Wings', co: 2000, e: 2, o: 0 },
+{ n: '⚙️ Jet', co: 10000, e: 2.5, o: 0 }
+],
+i() {
+let btn = document.getElementById('btn');
+btn.onmousedown = () => this.sc();
+btn.onmouseup = () => this.l();
+btn.onmouseleave = () => this.st();
+btn.ontouchstart = (e) => { e.preventDefault(); this.sc(); };
+btn.ontouchend = (e) => { e.preventDefault(); this.l(); };
+this.rs();
+this.ld();
+this.up();
+setInterval(() => this.up(), 100);
+},
+sc() {
+if (this.c) return;
+this.c = true;
+if (this.ci) clearInterval(this.ci);
+this.ci = setInterval(() => {
+if (!this.c) { clearInterval(this.ci); return; }
+this.p = Math.min(this.p + 2.5, this.mp);
+document.getElementById('fill').style.width = (this.p/this.mp*100) + '%';
+}, 50);
+},
+st() { if (this.ci) clearInterval(this.ci); this.c = false; },
+l() {
+if (!this.c) return;
+this.c = false;
+if (this.ci) clearInterval(this.ci);
+if (this.p < 5) { this.p = 0; document.getElementById('fill').style.width = '0%'; return; }
+let pow = this.p;
+this.p = 0;
+document.getElementById('fill').style.width = '0%';
+let dis = pow * this.x * 5;
+this.d += dis;
+this.m += Math.floor(dis/10) * this.x;
+this.ch++;
+clearTimeout(this.ct);
+this.ct = setTimeout(() => { this.ch = 0; }, 2000);
+if (this.ch > 1) this.x += 0.05;
+this.cb(pow);
+this.se();
+this.sv();
+},
+cb(pow) {
+if (this.bi) this.bi.remove();
+this.bi = document.createElement('div');
+this.bi.className = 'bison';
+this.bi.textContent = '🦬';
+this.bi.style.left = '50px';
+this.bi.style.bottom = '80px';
+document.querySelector('.container').appendChild(this.bi);
+let x = 50, y = window.innerHeight - 100, vx = pow * 2 * this.x, vy = pow * 2.5 * this.x, g = 0.25;
+let ai = setInterval(() => {
+x += vx; y -= vy; vy -= g;
+this.bi.style.left = x + 'px';
+this.bi.style.top = y + 'px';
+if (y > window.innerHeight - 60) {
+clearInterval(ai);
+if (this.bi && this.bi.parentNode) this.bi.remove();
+this.bi = null;
+}
+}, 30);
+},
+se() {
+let en = ['🐄', '🦌', '🐑', '🐷'];
+for (let i = 0; i < 3; i++) {
+setTimeout(() => {
+let e = document.createElement('div');
+e.className = 'enemy';
+e.textContent = en[Math.floor(Math.random() * en.length)];
+let ex = Math.random() * (window.innerWidth - 100) + 50;
+let ey = Math.random() * (window.innerHeight * 0.4) + window.innerHeight * 0.3;
+e.style.left = ex + 'px';
+e.style.top = ey + 'px';
+document.querySelector('.container').appendChild(e);
+setTimeout(() => { if (e.parentNode) e.remove(); }, 1000);
+}, i * 100);
+}
+},
+bu(i) {
+let up = this.u[i];
+if (this.m >= up.co) {
+this.m -= up.co;
+up.o++;
+up.co = Math.floor(up.co * 1.15);
+this.x *= up.e;
+this.rs();
+this.sv();
+}
+},
+rs() {
+let sh = document.getElementById('shop');
+sh.innerHTML = '';
+this.u.forEach((up, i) => {
+let it = document.createElement('div');
+it.className = 'item';
+it.innerHTML = `<div>${up.n}</div><div class="cost">💵 $${up.co}</div><div class="owned">📦 ${up.o}x</div>`;
+it.onclick = () => this.bu(i);
+sh.appendChild(it);
+});
+},
+up() {
+document.getElementById('dist').textContent = Math.floor(this.d);
+document.getElementById('cash').textContent = Math.floor(this.m);
+document.getElementById('mult').textContent = this.x.toFixed(1);
+if (this.ch > 1) {
+document.getElementById('combo').textContent = this.ch + 'x COMBO! 🔥';
+} else {
+document.getElementById('combo').textContent = '';
+}
+},
+sv() {
+try {
+localStorage.setItem('bs', JSON.stringify({d:this.d,m:this.m,x:this.x,u:this.u}));
+} catch(e) {}
+},
+ld() {
+try {
+let sd = localStorage.getItem('bs');
+if (sd) {
+let da = JSON.parse(sd);
+this.d = da.d || 0;
+this.m = da.m || 0;
+this.x = da.x || 1;
+if (da.u) this.u = da.u;
+}
+} catch(e) {}
+},
+reset() {
+if (confirm('Reset progress?')) {
+this.d = 0;
+this.m = 0;
+this.x = 1;
+this.u = [
+{ n: '🚀 Better', co: 100, e: 1.2, o: 0 },
+{ n: '🔥 Rocket', co: 500, e: 1.5, o: 0 },
+{ n: '✈️ Wings', co: 2000, e: 2, o: 0 },
+{ n: '⚙️ Jet', co: 10000, e: 2.5, o: 0 }
+];
+this.rs();
+try { localStorage.removeItem('bs'); } catch(e) {}
+this.up();
+}
+}
+};
+window.onload = () => g.i();
+window.onbeforeunload = () => g.sv();
+</script>
+</body>
+</html>
