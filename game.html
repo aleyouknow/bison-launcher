@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦬 Burrito Bison Launcher - Play Now!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+        }
+
+        .game-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: linear-gradient(to bottom, #87CEEB 0%, #90EE90 50%, #FFD700 100%);
+            overflow: hidden;
+        }
+
+        .sky {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
+        }
+
+        .ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: linear-gradient(to bottom, #90EE90, #228B22);
+        }
+
+        .launcher {
+            position: absolute;
+            bottom: 20px;
+            left: 50px;
+            width: 60px;
+            height: 60px;
+            background: #FF6B35;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            transition: transform 0.2s;
+            border: 3px solid #FF4500;
+            z-index: 10;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .launcher:hover {
+            transform: scale(1.1);
+        }
+
+        .launcher:active {
+            transform: scale(0.95);
+        }
+
+        .launcher-bar {
+            position: absolute;
+            bottom: 85px;
+            left: 20px;
+            width: 120px;
+            height: 30px;
+            background: #333;
+            border: 2px solid #fff;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .launcher-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FF6B35, #FFA500);
+            width: 0%;
+            transition: width 0.05s;
+        }
+
+        .launcher-text {
+            position: absolute;
+            bottom: 120px;
+            left: 20px;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+        }
+
+        .bison {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            font-size: 45px;
+            z-index: 20;
+            line-height: 50px;
+            text-align: center;
+        }
+
+        .enemy {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            font-size: 35px;
+            z-index: 15;
+            line-height: 40px;
+            text-align: center;
+        }
+
+        .ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            z-index: 100;
+        }
+
+        .distance {
+            margin-bottom: 10px;
+        }
+
+        .money {
+            margin-bottom: 10px;
+            color: #FFD700;
+        }
+
+        .multiplier {
+            color: #FFA500;
+        }
+
+        .shop {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            max-width: 280px;
+            z-index: 100;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 2px solid #FFD700;
+        }
+
+        .shop::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .shop::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .shop::-webkit-scrollbar-thumb {
+            background: #FFD700;
+            border-radius: 4px;
+        }
+
+        .shop-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            color: #FFD700;
+        }
+
+        .shop-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .shop-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #FFD700;
+            transform: translateX(5px);
+        }
+
+        .shop-item-name {
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .shop-item-cost {
+            font-size: 11px;
+            color: #FFD700;
+            margin-top: 5px;
+        }
+
+        .shop-item-owned {
+            font-size: 10px;
+            color: #90EE90;
+            margin-top: 3px;
+        }
+
+        button {
+            background: #FF6B35;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            margin-top: 10px;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #FF4500;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .reset-btn {
+            background: #764ba2;
+        }
+
+        .reset-btn:hover {
+            background: #5a3680;
+        }
+
+        .combo-counter {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #FFD700;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            z-index: 50;
+        }
+
+        .mobile-info {
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+            color: rgba(255,255,255,0.6);
+            font-size: 12px;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="sky"></div>
+        <div class="ground"></div>
+        
+        <div class="ui">
+            <div class="distance">📏 <span id="distance">0</span>m</div>
+            <div class="money">💰 $<span id="money">0</span></div>
+            <div class="multiplier">⚡ <span id="multiplier">1.0</span>x</div>
+        </div>
+
+        <div class="launcher-text">👆 Hold to charge</div>
+        <div class="launcher-bar">
+            <div class="launcher-fill" id="launcherFill"></div>
+        </div>
+        <div class="launcher" id="launcher">🦬</div>
+
+        <div class="combo-counter" id="comboCounter"></div>
+        <div class="mobile-info">Tap launcher to launch!</div>
+
+        <div class="shop">
+            <div class="shop-title">🛒 UPGRADES</div>
+            <div id="shopContainer"></div>
+            <button class="reset-btn" onclick="game.reset()">🔄 Reset</button>
+        </div>
+    </div>
+
+    <script>
+        const game = {
+            distance: 0,
+            money: 0,
+            multiplier: 1,
+            power: 0,
+            maxPower: 100,
+            isCharging: false,
+            bisonElement: null,
+            comboHits: 0,
+            comboTimeout: null,
+            chargeInterval: null,
+
+            upgrades: [
+                { name: '🚀 Better Launcher', cost: 100, effect: 1.2, owned: 0, type: 'multiplier' },
+                { name: '🔥 Rocket Boost', cost: 500, effect: 1.5, owned: 0, type: 'multiplier' },
+                { name: '✈️ Wings Pack', cost: 2000, effect: 2, owned: 0, type: 'multiplier' },
+                { name: '⚙️ Jet Engine', cost: 10000, effect: 2.5, owned: 0, type: 'multiplier' },
+            ],
+
+            init() {
+                const launcher = document.getElementById('launcher');
+                
+                launcher.addEventListener('mousedown', () => this.startCharging());
+                launcher.addEventListener('mouseup', () => this.launch());
+                launcher.addEventListener('mouseleave', () => this.stopCharging());
+                
+                launcher.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.startCharging();
+                });
+                
+                launcher.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    this.launch();
+                });
+
+                this.renderShop();
+                this.loadGame();
+                this.updateUI();
+                setInterval(() => this.updateUI(), 100);
+            },
+
+            startCharging() {
+                if (this.isCharging) return;
+                this.isCharging = true;
+                
+                if (this.chargeInterval) clearInterval(this.chargeInterval);
+                
+                this.chargeInterval = setInterval(() => {
+                    if (!this.isCharging) {
+                        clearInterval(this.chargeInterval);
+                        return;
+                    }
+                    this.power = Math.min(this.power + 2.5, this.maxPower);
+                    document.getElementById('launcherFill').style.width = (this.power / this.maxPower * 100) + '%';
+                }, 50);
+            },
+
+            stopCharging() {
+                if (this.chargeInterval) clearInterval(this.chargeInterval);
+                this.isCharging = false;
+            },
+
+            launch() {
+                if (!this.isCharging) return;
+                this.isCharging = false;
+                if (this.chargeInterval) clearInterval(this.chargeInterval);
+
+                if (this.power < 5) {
+                    this.power = 0;
+                    document.getElementById('launcherFill').style.width = '0%';
+                    return;
+                }
+
+                const power = this.power;
+                this.power = 0;
+                document.getElementById('launcherFill').style.width = '0%';
+
+                const distance = power * this.multiplier * 5;
+                this.distance += distance;
+                this.money += Math.floor(distance / 10) * this.multiplier;
+
+                this.comboHits++;
+                clearTimeout(this.comboTimeout);
+                this.comboTimeout = setTimeout(() => {
+                    this.comboHits = 0;
+                }, 2000);
+
+                if (this.comboHits > 1) {
+                    this.multiplier += 0.05;
+                }
+
+                this.createBison(power);
+                this.spawnEnemies();
+                this.saveGame();
+            },
+
+            createBison(power) {
+                if (this.bisonElement) this.bisonElement.remove();
+
+                this.bisonElement = document.createElement('div');
+                this.bisonElement.className = 'bison';
+                this.bisonElement.textContent = '🦬';
+                this.bisonElement.style.left = '50px';
+                this.bisonElement.style.bottom = '80px';
+
+                document.querySelector('.game-container').appendChild(this.bisonElement);
+
+                let x = 50;
+                let y = window.innerHeight - 100;
+                let vx = power * 2 * this.multiplier;
+                let vy = power * 2.5 * this.multiplier;
+                const gravity = 0.25;
+
+                const animateInterval = setInterval(() => {
+                    x += vx;
+                    y -= vy;
+                    vy -= gravity;
+
+                    this.bisonElement.style.left = x + 'px';
+                    this.bisonElement.style.top = y + 'px';
+
+                    if (y > window.innerHeight - 60) {
+                        clearInterval(animateInterval);
+                        if (this.bisonElement && this.bisonElement.parentNode) {
+                            this.bisonElement.remove();
+                        }
+                        this.bisonElement = null;
+                    }
+                }, 30);
+            },
+
+            spawnEnemies() {
+                const enemies = ['🐄', '🦌', '🐑', '🐷'];
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => {
+                        const enemy = document.createElement('div');
+                        enemy.className = 'enemy';
+                        enemy.textContent = enemies[Math.floor(Math.random() * enemies.length)];
+                        
+                        const x = Math.random() * (window.innerWidth - 100) + 50;
+                        const y = Math.random() * (window.innerHeight * 0.4) + window.innerHeight * 0.3;
+                        
+                        enemy.style.left = x + 'px';
+                        enemy.style.top = y + 'px';
+
+                        document.querySelector('.game-container').appendChild(enemy);
+
+                        setTimeout(() => {
+                            if (enemy.parentNode) enemy.remove();
+                        }, 1000);
+                    }, i * 100);
+                }
+            },
+
+            buyUpgrade(index) {
+                const upgrade = this.upgrades[index];
+                if (this.money >= upgrade.cost) {
+                    this.money -= upgrade.cost;
+                    upgrade.owned++;
+                    upgrade.cost = Math.floor(upgrade.cost * 1.15);
+                    this.multiplier *= upgrade.effect;
+                    this.renderShop();
+                    this.saveGame();
+                } else {
+                    alert('Not enough money! Need $' + (upgrade.cost - Math.floor(this.money)));
+                }
+            },
+
+            renderShop() {
+                const container = document.getElementById('shopContainer');
+                container.innerHTML = '';
+
+                this.upgrades.forEach((upgrade, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'shop-item';
+                    const canAfford = this.money >= upgrade.cost;
+                    item.style.opacity = canAfford ? '1' : '0.6';
+                    item.innerHTML = `
+                        <div class="shop-item-name">${upgrade.name}</div>
+                        <div class="shop-item-cost">💵 $${upgrade.cost}</div>
+                        <div class="shop-item-owned">📦 ${upgrade.owned}x</div>
+                    `;
+                    item.onclick = () => this.buyUpgrade(index);
+                    container.appendChild(item);
+                });
+            },
+
+            updateUI() {
+                document.getElementById('distance').textContent = Math.floor(this.distance);
+                document.getElementById('money').textContent = Math.floor(this.money);
+                document.getElementById('multiplier').textContent = this.multiplier.toFixed(1);
+
+                if (this.comboHits > 1) {
+                    document.getElementById('comboCounter').textContent = `${this.comboHits}x COMBO! 🔥`;
+                } else {
+                    document.getElementById('comboCounter').textContent = '';
+                }
+            },
+
+            saveGame() {
+                const saveData = {
+                    distance: this.distance,
+                    money: this.money,
+                    multiplier: this.multiplier,
+                    upgrades: this.upgrades
+                };
+                try {
+                    localStorage.setItem('bisonGame', JSON.stringify(saveData));
+                } catch (e) {
+                    console.log('Save failed:', e);
+                }
+            },
+
+            loadGame() {
+                try {
+                    const saveData = localStorage.getItem('bisonGame');
+                    if (saveData) {
+                        const data = JSON.parse(saveData);
+                        this.distance = data.distance || 0;
+                        this.money = data.money || 0;
+                        this.multiplier = data.multiplier || 1;
+                        if (data.upgrades && data.upgrades.length > 0) {
+                            this.upgrades = data.upgrades;
+                        }
+                        this.renderShop();
+                    }
+                } catch (e) {
+                    console.log('Load failed:', e);
+                }
+            },
+
+            reset() {
+                if (confirm('🔄 Reset all progress? You sure?')) {
+                    this.distance = 0;
+                    this.money = 0;
+                    this.multiplier = 1;
+                    this.upgrades = [
+                        { name: '🚀 Better Launcher', cost: 100, effect: 1.2, owned: 0, type: 'multiplier' },
+                        { name: '🔥 Rocket Boost', cost: 500, effect: 1.5, owned: 0, type: 'multiplier' },
+                        { name: '✈️ Wings Pack', cost: 2000, effect: 2, owned: 0, type: 'multiplier' },
+                        { name: '⚙️ Jet Engine', cost: 10000, effect: 2.5, owned: 0, type: 'multiplier' },
+                    ];
+                    this.renderShop();
+                    try {
+                        localStorage.removeItem('bisonGame');
+                    } catch (e) {
+                        console.log('Reset failed:', e);
+                    }
+                    this.updateUI();
+                }
+            }
+        };
+
+        window.addEventListener('load', () => game.init());
+        window.addEventListener('beforeunload', () => game.saveGame());
+    </script>
+</body>
+</html>
